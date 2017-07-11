@@ -8,49 +8,24 @@ import cv2
 import time
 import pickle
 
+#from sklearn.model_selection import train_test_split
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
 from sklearn.externals import joblib
 
-from features import single_img_features
-from features import extract_features
+from features import extract_features_from_image_list
 
 from utils import slide_window
 from utils import draw_boxes
 from utils import visualize
+from utils import get_training_data
 
-from find_cars import search_windows
+from find_cars import find_cars_in_windows
 
 if __name__ == '__main__':
-	basedir = 'data/vehicles/vehicles/'
 
-	image_types = os.listdir(basedir)
-	cars = []
-
-	for imtype in image_types:
-		cars.extend(glob.glob(basedir+imtype+'/*'))
-
-	print('Number of Vehicle Images found:',len(cars))
-
-	with open("cars.txt", 'w') as f:
-		for fn in cars:
-			f.write(fn+'\n')
-
-	basedir = 'data/non-vehicles/non-vehicles/'
-
-	image_types = os.listdir(basedir)
-	notcars = []
-
-	for imtype in image_types:
-		notcars.extend(glob.glob(basedir+imtype+'/*'))
-
-	print('Number of Non-Vehicle Images found:',len(notcars))
-
-	with open("notcars.txt", 'w') as f:
-		for fn in notcars:
-			f.write(fn+'\n')
-
+	# Hyper paramaters
 	color_space = 'YCrCb'
 	orient = 9
 	pix_per_cell = 8
@@ -59,28 +34,28 @@ if __name__ == '__main__':
 	spatial_size = (32,32)
 	hist_bins = 32
 
-	t = time.time()
-	n_samples = 1000
-	random_idxs = np.random.randint(0, len(cars), n_samples)
-	train_cars = cars #np.array(cars)[random_idxs]
-	train_notcars = notcars #np.array(notcars)[random_idxs]
+	# Read training data
+	train_cars, train_notcars = get_training_data()
 
-	car_features = extract_features(train_cars, color_space=color_space, spatial_size=spatial_size,
+	t = time.time()
+
+	# Extract Features
+	car_features = extract_features_from_image_list(train_cars, color_space=color_space, spatial_size=spatial_size,
 	                        hist_bins=hist_bins, orient=orient, 
 	                        pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, hog_channel=hog_channel,
 	                        spatial_feat=True, hist_feat=True, hog_feat=True)
 
-	notcar_features = extract_features(train_notcars, color_space=color_space, spatial_size=spatial_size,
+	notcar_features = extract_features_from_image_list(train_notcars, color_space=color_space, spatial_size=spatial_size,
 	                        hist_bins=hist_bins, orient=orient, 
 	                        pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, hog_channel=hog_channel,
 	                        spatial_feat=True, hist_feat=True, hog_feat=True)
 
 	print(time.time()-t, 'seconds to compute features')
 
-	X = np.vstack((car_features, notcar_features)).astype(np.float64)                        
-	# Fit a per-column scaler
+	X = np.vstack((car_features, notcar_features)).astype(np.float64)  
+
+	# Normalise features
 	X_scaler = StandardScaler().fit(X)
-	# Apply the scaler to X
 	scaled_X = X_scaler.transform(X)
 
 	# Define the labels vector
@@ -96,50 +71,51 @@ if __name__ == '__main__':
 	    'pixels per cell and', cell_per_block,'cells per block')
 	print('Feature vector length:', len(X_train[0]))
 
-	# Use a linear SVC 
+	# Train a Support Vector Machine Classifier
 	svc = LinearSVC()
-	# Check the training time for the SVC
+
 	t=time.time()
+
 	svc.fit(X_train, y_train)
+
 	t2 = time.time()
+
 	print(round(t2-t, 2), 'Seconds to train SVC...')
-	# Check the score of the SVC
 	print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
 
-	dist_pickle = {}
+	# Save Classifier
 
-	dist_pickle['svc'] = svc
-	dist_pickle['color_space'] = color_space
-	dist_pickle['orient'] = orient
-	dist_pickle['pix_per_cell'] = pix_per_cell
-	dist_pickle['cell_per_block'] = cell_per_block
-	dist_pickle['hog_channel'] = hog_channel
-	dist_pickle['spatial_size'] = spatial_size
-	dist_pickle['hist_bins'] = hist_bins
-	dist_pickle['X_scaler'] = X_scaler
+	classifer_model = {}
 
-	pickle.dump(dist_pickle, open('dist_pickle.pkl', 'wb'))
+	classifer_model['svc'] = svc
+	classifer_model['color_space'] = color_space
+	classifer_model['orient'] = orient
+	classifer_model['pix_per_cell'] = pix_per_cell
+	classifer_model['cell_per_block'] = cell_per_block
+	classifer_model['hog_channel'] = hog_channel
+	classifer_model['spatial_size'] = spatial_size
+	classifer_model['hist_bins'] = hist_bins
+	classifer_model['X_scaler'] = X_scaler
 
-	dist_pickle = pickle.load( open('dist_pickle.pkl', 'rb' ) )
-
-	svc = dist_pickle['svc']
-	color_space = dist_pickle['color_space']
-	orient = dist_pickle['orient']
-	pix_per_cell = dist_pickle['pix_per_cell'] 
-	cell_per_block = dist_pickle['cell_per_block']
-	hog_channel = dist_pickle['hog_channel'] 
-	spatial_size = dist_pickle['spatial_size']
-	hist_bins = dist_pickle['hist_bins']
-	X_scaler = dist_pickle['X_scaler']
+	pickle.dump(classifer_model, open('classifer_model.pkl', 'wb'))
 
 
+	# Test Classifier
 
-	#joblib.dump(svc, 'svc.pkl') 
+	classifer_model = pickle.load( open('classifer_model.pkl', 'rb' ) )
 
-	#svc = joblib.load('svc.pkl')
+	svc = classifer_model['svc']
+	color_space = classifer_model['color_space']
+	orient = classifer_model['orient']
+	pix_per_cell = classifer_model['pix_per_cell'] 
+	cell_per_block = classifer_model['cell_per_block']
+	hog_channel = classifer_model['hog_channel'] 
+	spatial_size = classifer_model['spatial_size']
+	hist_bins = classifer_model['hist_bins']
+	X_scaler = classifer_model['X_scaler']
 
 
-	# Check the prediction time for a single sample
+
 	t=time.time()
 
 	example_images = glob.glob('test_images/*')
@@ -159,7 +135,7 @@ if __name__ == '__main__':
 		windows = slide_window(img, x_start_stop=[None, None], y_start_stop=y_start_stop, 
                     xy_window=(128, 128), xy_overlap=(overlap, overlap))
 
-		hot_windows = search_windows(img, windows, svc, X_scaler, color_space=color_space, 
+		hot_windows = find_cars_in_windows(img, windows, svc, X_scaler, color_space=color_space, 
                     spatial_size=spatial_size, hist_bins=hist_bins, 
                     hist_range=(0, 256), orient=orient, 
                     pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, 

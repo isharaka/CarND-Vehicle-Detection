@@ -17,74 +17,69 @@ from utils import slide_window
 from utils import draw_boxes
 from utils import visualize
 
-from find_cars import search_windows
-from find_cars import find_cars
+from find_cars import find_cars_in_windows
+from find_cars import find_cars_in_image
 
 from heatmap import add_heat
 from heatmap import apply_threshold
 from heatmap import get_labeled_bboxes
 
 def pipeline(img):
-
-	global dist_pickle
-
 	global svc, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, X_scaler
 
 	sub_sample = True
 
 	draw_img = np.copy(img)
 	draw_img2 = np.copy(img)
+	heatmap = np.zeros_like(img[:,:,0])
+
 	img = img.astype(np.float32)/255
-	print(np.min(img), np.max(img))
 
 	if (sub_sample==True):
-		hot_windows = find_cars(img, 0, 719, svc, X_scaler, scale=1.5, orient=orient, 
+		hot_windows = find_cars_in_image(img, 0, 719, svc, X_scaler, scale=1.5, orient=orient, 
 					pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, spatial_size=spatial_size, 
 					hist_bins=hist_bins, color_space=color_space)
 	else:
 		windows = slide_window(img, x_start_stop=[None, None], y_start_stop=y_start_stop, 
                     xy_window=(64, 64), xy_overlap=(overlap, overlap))
 
-		hot_windows = search_windows(img, windows, svc, X_scaler, color_space=color_space, 
+		hot_windows = find_cars_in_windows(img, windows, svc, X_scaler, color_space=color_space, 
                     spatial_size=spatial_size, hist_bins=hist_bins, 
                     hist_range=(0, 256), orient=orient, 
                     pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, 
                     hog_channel=hog_channel, spatial_feat=True, 
                     hist_feat=True, hog_feat=True)
 
-	window_img = draw_boxes(draw_img, hot_windows, color=(0,0,255), thick=6)
-
-	heatmap = np.zeros_like(img[:,:,0])
+	img_hot_windows = draw_boxes(draw_img, hot_windows, color=(0,0,255), thick=6)
+	
 	heatmap = add_heat(heatmap,hot_windows)
 	heatmap = apply_threshold(heatmap,2)
-		
 
-	window_img2 = draw_boxes(draw_img2, get_labeled_bboxes(heatmap), color=(0,0,255), thick=6)
+	car_windows = get_labeled_bboxes(heatmap)		
 
-	return window_img, heatmap, window_img2 
+	img_detected_cars = draw_boxes(draw_img2, car_windows, color=(0,0,255), thick=6)
+
+	return img_hot_windows, heatmap, img_detected_cars, len(hot_windows), len(car_windows) 
 
 def process_image(image):
-    window_img, heatmap, window_img2 = pipeline(image)
-    return window_img2
+    img_hot_windows, heatmap, img_detected_cars, no_hot_windows, no_cars = pipeline(image)
+    return img_detected_cars
 
 if __name__ == '__main__':
 
-	dist_pickle = pickle.load( open('dist_pickle.pkl', 'rb' ) )
+	classifer_model = pickle.load( open('classifer_model.pkl', 'rb' ) )
 
-	svc = dist_pickle['svc']
-	color_space = dist_pickle['color_space']
-	orient = dist_pickle['orient']
-	pix_per_cell = dist_pickle['pix_per_cell'] 
-	cell_per_block = dist_pickle['cell_per_block']
-	hog_channel = dist_pickle['hog_channel'] 
-	spatial_size = dist_pickle['spatial_size']
-	hist_bins = dist_pickle['hist_bins']
-	X_scaler = dist_pickle['X_scaler']
+	svc = classifer_model['svc']
+	color_space = classifer_model['color_space']
+	orient = classifer_model['orient']
+	pix_per_cell = classifer_model['pix_per_cell'] 
+	cell_per_block = classifer_model['cell_per_block']
+	hog_channel = classifer_model['hog_channel'] 
+	spatial_size = classifer_model['spatial_size']
+	hist_bins = classifer_model['hist_bins']
+	X_scaler = classifer_model['X_scaler']
 
-	sub_sample = True
-
-
-	# Check the prediction time for a single sample
+	
 	t=time.time()
 
 	example_images = glob.glob('test_images/*')
@@ -96,20 +91,14 @@ if __name__ == '__main__':
 
 	for img_src in example_images:
 		t1 = time.time()
-
 		
-		img = mpimg.imread(img_src)
+		img_hot_windows, heatmap, img_detected_cars, no_hot_windows, no_cars = pipeline(mpimg.imread(img_src))
 
-
-		window_img, heatmap, window_img2 = pipeline(img)
-
-		images.append(window_img)
-		titles.append('')
+		images.append(img_hot_windows)
 		images.append(heatmap)
-		titles.append('')
-		images.append(window_img2)
-		titles.append('')
-		print(time.time()-t1, ' seconds to process one image searching ', 0, 'windows')
+		images.append(img_detected_cars)
+
+		print(time.time()-t1, ' seconds to process one image. ', no_hot_windows, 'hot windows.', no_cars, ' cars detected.')
 
 	fig = plt.figure()
 	visualize(fig, 6, 3, images, titles)

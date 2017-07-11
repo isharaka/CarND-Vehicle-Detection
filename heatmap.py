@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.ndimage.measurements import label
 
+# Add heat to the given hitmap for the areas in bounding box list
 def add_heat(heatmap, bbox_list):
     # Iterate through list of bboxes
     for box in bbox_list:
@@ -12,12 +13,14 @@ def add_heat(heatmap, bbox_list):
     # Return updated heatmap
     return heatmap# Iterate through list of bboxes
     
+# Threshold the heatmap
 def apply_threshold(heatmap, threshold):
     # Zero out pixels below the threshold
     heatmap[heatmap <= threshold] = 0
     # Return thresholded map
     return heatmap
 
+# Get a list of bounding boxes for a given heatmap
 def get_labeled_bboxes(heatmap):
     bboxes = []
     labels = label(heatmap)
