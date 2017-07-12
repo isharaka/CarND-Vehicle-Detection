@@ -24,8 +24,14 @@ from heatmap import add_heat
 from heatmap import apply_threshold
 from heatmap import get_labeled_bboxes
 
+smoothing_enabled = True
+heatmap_buffer = []
+
+HEATMAP_BUFFER_SIZE = 20
+
 def pipeline(img):
 	global svc, color_space, orient, pix_per_cell, cell_per_block, hog_channel, spatial_size, hist_bins, X_scaler
+	global smoothing_enabled
 
 	sub_sample = True
 
@@ -36,7 +42,7 @@ def pipeline(img):
 	img = img.astype(np.float32)/255
 
 	if (sub_sample==True):
-		hot_windows = find_cars_in_image(img, 0, 719, svc, X_scaler, scale=1.5, orient=orient, 
+		hot_windows = find_cars_in_image(img, 360, 719, svc, X_scaler, scale=1.5, orient=orient, 
 					pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, spatial_size=spatial_size, 
 					hist_bins=hist_bins, color_space=color_space)
 	else:
@@ -53,9 +59,25 @@ def pipeline(img):
 	img_hot_windows = draw_boxes(draw_img, hot_windows, color=(0,0,255), thick=6)
 	
 	heatmap = add_heat(heatmap,hot_windows)
-	heatmap = apply_threshold(heatmap,2)
+	heatmap = apply_threshold(heatmap,1)
 
-	car_windows = get_labeled_bboxes(heatmap)		
+	if (smoothing_enabled==True):
+		if(len(heatmap_buffer) >= HEATMAP_BUFFER_SIZE):
+			del heatmap_buffer[0]
+
+		heatmap_buffer.append(heatmap)
+
+		smooth_heatmap = np.zeros_like(img[:,:,0])
+		total_weights = 0;
+		for i in range(len(heatmap_buffer)):
+			smooth_heatmap += ((i+1) * heatmap_buffer[i])
+			total_weights += (i+1)
+		smooth_heatmap = smooth_heatmap / total_weights
+
+		car_windows = get_labeled_bboxes(smooth_heatmap)	
+	else:
+		car_windows = get_labeled_bboxes(heatmap)
+
 
 	img_detected_cars = draw_boxes(draw_img2, car_windows, color=(0,0,255), thick=6)
 
@@ -89,6 +111,8 @@ if __name__ == '__main__':
 	y_start_stop = [None, None]
 	overlap = 0.5
 
+	smoothing_enabled = False
+
 	for img_src in example_images:
 		t1 = time.time()
 		
@@ -103,8 +127,10 @@ if __name__ == '__main__':
 	fig = plt.figure()
 	visualize(fig, 6, 3, images, titles)
 
+	smoothing_enabled = True
+
 	# Process video clip
-	#output_clip = 'output.mp4'
-	#input_clip = VideoFileClip("test_video.mp4")
-	#clip = input_clip.fl_image(process_image) #NOTE: this function expects color images!!
-	#clip.write_videofile(output_clip, audio=False)
+	output_clip = 'output.mp4'
+	input_clip = VideoFileClip("test_video.mp4")
+	clip = input_clip.fl_image(process_image) #NOTE: this function expects color images!!
+	clip.write_videofile(output_clip, audio=False)
