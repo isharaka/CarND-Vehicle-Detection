@@ -42,9 +42,17 @@ def pipeline(img):
 	img = img.astype(np.float32)/255
 
 	if (sub_sample==True):
-		hot_windows = find_cars_in_image(img, 360, 719, svc, X_scaler, scale=1.5, orient=orient, 
+		hot_windows1 = find_cars_in_image(img, 360, 719, svc, X_scaler, scale=1, orient=orient, 
 					pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, spatial_size=spatial_size, 
 					hist_bins=hist_bins, color_space=color_space)
+		hot_windows2 = find_cars_in_image(img, 360, 719, svc, X_scaler, scale=1.5, orient=orient, 
+					pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, spatial_size=spatial_size, 
+					hist_bins=hist_bins, color_space=color_space)
+		hot_windows3 = find_cars_in_image(img, 360, 719, svc, X_scaler, scale=2, orient=orient, 
+					pix_per_cell=pix_per_cell, cell_per_block=cell_per_block, spatial_size=spatial_size, 
+					hist_bins=hist_bins, color_space=color_space)
+
+		hot_windows = hot_windows1 + hot_windows2 + hot_windows3
 	else:
 		windows = slide_window(img, x_start_stop=[None, None], y_start_stop=y_start_stop, 
                     xy_window=(64, 64), xy_overlap=(overlap, overlap))
@@ -59,7 +67,7 @@ def pipeline(img):
 	img_hot_windows = draw_boxes(draw_img, hot_windows, color=(0,0,255), thick=6)
 	
 	heatmap = add_heat(heatmap,hot_windows)
-	heatmap = apply_threshold(heatmap,1)
+	heatmap = apply_threshold(heatmap,2)
 
 	if (smoothing_enabled==True):
 		if(len(heatmap_buffer) >= HEATMAP_BUFFER_SIZE):
@@ -130,7 +138,7 @@ if __name__ == '__main__':
 	smoothing_enabled = True
 
 	# Process video clip
-	output_clip = 'output.mp4'
-	input_clip = VideoFileClip("test_video.mp4")
+	output_clip = 'project_output.mp4'
+	input_clip = VideoFileClip("project_video.mp4")
 	clip = input_clip.fl_image(process_image) #NOTE: this function expects color images!!
 	clip.write_videofile(output_clip, audio=False)
