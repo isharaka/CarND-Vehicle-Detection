@@ -69,7 +69,7 @@ def pipeline(img):
 	img_hot_windows = draw_boxes(draw_img, hot_windows, color=(0,0,255), thick=6)
 	
 	heatmap = add_heat(heatmap,hot_windows)
-	heatmap = apply_threshold(heatmap,2)
+	heatmap = apply_threshold(heatmap,1)
 
 	if (smoothing_enabled==True):
 		if(len(heatmap_buffer) >= HEATMAP_BUFFER_SIZE):
@@ -129,13 +129,18 @@ if __name__ == '__main__':
 		img_hot_windows, heatmap, img_detected_cars, no_hot_windows, no_cars = pipeline(mpimg.imread(img_src))
 
 		images.append(img_hot_windows)
+		titles.append("hot windows "+img_src)
 		images.append(heatmap)
+		titles.append("heat map "+img_src)
 		images.append(img_detected_cars)
+		titles.append("detections "+img_src)
 
 		print(time.time()-t1, ' seconds to process one image. ', no_hot_windows, 'hot windows.', no_cars, ' cars detected.')
 
-	fig = plt.figure()
-	visualize(fig, 6, 3, images, titles)
+	fig = plt.figure(figsize=(24,16))
+	visualize(fig, 3, 3, images[0:9], titles[0:9], 'output_images/pipeline1.jpg')
+	fig = plt.figure(figsize=(24,16))
+	visualize(fig, 3, 3, images[9:18], titles[9:18], 'output_images/pipeline2.jpg')
 
 	smoothing_enabled = True
 
