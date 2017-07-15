@@ -1,7 +1,11 @@
 import numpy as np
 import cv2
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 from skimage.feature import hog
+
+from utils import visualize
+from utils import get_training_data
 
 # Function to return HOG features and visualization
 def get_hog_features(img, orient, pix_per_cell, cell_per_block, 
@@ -122,3 +126,375 @@ def extract_features_from_image_list(imgs, color_space='RGB', spatial_size=(32, 
         features.append(file_features)
 
     return features
+
+if __name__ == '__main__':
+    # Hyper paramaters
+    
+    orient = 9
+    pix_per_cell = 8
+    cell_per_block = 2
+    spatial_size = (32,32)
+    hist_bins = 32
+
+    cars, noncars = get_training_data(nsamples=1)
+    car_image = mpimg.imread(cars[0])
+    noncar_image = mpimg.imread(noncars[0])
+
+
+    images = [car_image, noncar_image]
+    titles = ['car image', 'non car image']
+    fig = plt.figure(figsize=(12,3))
+    visualize(fig, 1, 2, images, titles, figname='output_images/example_car_noncar.jpg')
+
+    images = []
+    titles = []
+
+    color_space = 'RGB'
+    feature_image = car_image
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('RGB Channel 0')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('RGB Channel 1')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('RGB Channel 2')
+
+    color_space = 'YCrCb'
+    feature_image = cv2.cvtColor(car_image, cv2.COLOR_RGB2YCrCb)
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2')
+
+    color_space = 'HLS'
+    feature_image = cv2.cvtColor(car_image, cv2.COLOR_RGB2HLS)
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('HLS Channel 0')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('HLS Channel 1')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('HLS Channel 2')
+
+
+    fig = plt.figure(figsize=(24,24))
+    visualize(fig, 3, 3, images, titles, figname='output_images/car_hog.jpg', cmap='gray')
+
+    images = []
+    titles = []
+
+    color_space = 'RGB'
+    feature_image = noncar_image
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('RGB Channel 0')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('RGB Channel 1')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('RGB Channel 2')
+
+    color_space = 'YCrCb'
+    feature_image = cv2.cvtColor(noncar_image, cv2.COLOR_RGB2YCrCb)
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2')
+
+    color_space = 'HLS'
+    feature_image = cv2.cvtColor(noncar_image, cv2.COLOR_RGB2HLS)
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('HLS Channel 0')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('HLS Channel 1')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('HLS Channel 2')
+
+
+    fig = plt.figure(figsize=(24,24))
+    visualize(fig, 3, 3, images, titles, figname='output_images/noncar_hog.jpg', cmap='gray')
+
+
+    images = []
+    titles = []
+
+    color_space = 'YCrCb'
+    feature_image = cv2.cvtColor(car_image, cv2.COLOR_RGB2YCrCb)
+
+    orient = 3
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 3 orientations')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 3 orientations')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 3 orientations')
+
+    orient = 9
+    
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 9 orientations')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 9 orientations')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 9 orientations')
+
+    orient = 15
+    
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 15 orientations')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 15 orientations')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 15 orientations')
+
+    fig = plt.figure(figsize=(24,24))
+    visualize(fig, 3, 3, images, titles, figname='output_images/car_hog_orient.jpg', cmap='gray')
+
+    images = []
+    titles = []
+
+    color_space = 'YCrCb'
+    orient = 9
+    feature_image = cv2.cvtColor(car_image, cv2.COLOR_RGB2YCrCb)
+
+    pix_per_cell = 4
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 4 pixels/cell')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 4 pixels/cell')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 4 pixels/cell')
+
+    pix_per_cell = 8
+    
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 8 pixels/cell')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 8 pixels/cell')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 8 pixels/cell')
+
+    pix_per_cell = 16
+    
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 16 pixels/cell')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 16 pixels/cell')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 16 pixels/cell')
+
+    fig = plt.figure(figsize=(24,24))
+    visualize(fig, 3, 3, images, titles, figname='output_images/car_hog_pix_per_cell.jpg', cmap='gray')
+    
+    images = []
+    titles = []
+
+    color_space = 'YCrCb'
+    orient = 9
+    pix_per_cell = 8
+
+    feature_image = cv2.cvtColor(car_image, cv2.COLOR_RGB2YCrCb)
+
+    cell_per_block = 1
+
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 1 cells/block')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 1 cells/block')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 1 cells/block')
+
+    cell_per_block = 2
+    
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 2 cells/block')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 2 cells/block')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 2 cells/block')
+
+    cell_per_block = 4
+    
+    hog_channel = 0
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 0 - 4 cells/block')
+
+    hog_channel = 1 
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 1 - 4 cells/block')
+
+    hog_channel = 2
+    hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+    images.append(hog_image)
+    titles.append('YCrCb Channel 2 - 4 cells/block')
+
+    fig = plt.figure(figsize=(24,24))
+    visualize(fig, 3, 3, images, titles, figname='output_images/car_hog_cell_per_block.jpg', cmap='gray')
+
