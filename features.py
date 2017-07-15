@@ -130,6 +130,8 @@ def extract_features_from_image_list(imgs, color_space='RGB', spatial_size=(32, 
 if __name__ == '__main__':
     # Hyper paramaters
     
+    color_space = 'RGB'
+    hog_channel = 0
     orient = 9
     pix_per_cell = 8
     cell_per_block = 2
@@ -140,11 +142,17 @@ if __name__ == '__main__':
     car_image = mpimg.imread(cars[0])
     noncar_image = mpimg.imread(noncars[0])
 
+    hog_features, car_hog_image = get_hog_features(car_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
 
-    images = [car_image, noncar_image]
-    titles = ['car image', 'non car image']
-    fig = plt.figure(figsize=(12,3))
-    visualize(fig, 1, 2, images, titles, figname='output_images/example_car_noncar.jpg')
+    hog_features, noncar_hog_image = get_hog_features(noncar_image[:,:,hog_channel], orient, 
+                            pix_per_cell, cell_per_block, vis=True, feature_vec=True)
+
+
+    images = [car_image, noncar_image, car_hog_image, noncar_hog_image]
+    titles = ['car image', 'non car image', 'car hog', 'noncar hog']
+    fig = plt.figure(figsize=(12,6))
+    visualize(fig, 2, 2, images, titles, figname='output_images/example_car_noncar_hog.jpg')
 
     images = []
     titles = []
@@ -214,7 +222,7 @@ if __name__ == '__main__':
 
 
     fig = plt.figure(figsize=(24,24))
-    visualize(fig, 3, 3, images, titles, figname='output_images/car_hog.jpg', cmap='gray')
+    visualize(fig, 3, 3, images, titles, figname='output_images/car_hog_colorspace.jpg', cmap='gray')
 
     images = []
     titles = []
@@ -284,7 +292,7 @@ if __name__ == '__main__':
 
 
     fig = plt.figure(figsize=(24,24))
-    visualize(fig, 3, 3, images, titles, figname='output_images/noncar_hog.jpg', cmap='gray')
+    visualize(fig, 3, 3, images, titles, figname='output_images/noncar_hog_colorspace.jpg', cmap='gray')
 
 
     images = []
