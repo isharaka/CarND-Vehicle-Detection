@@ -6,17 +6,23 @@ import glob
 import os
 
 
-def visualize(fig, rows, cols, imgs, titles):
+def visualize(fig, rows, cols, imgs, titles, figname=None, cmap=None):
     for i, img in enumerate(imgs):
         plt.subplot(rows, cols, i+1)
-        plt.title(i+1)
-        img_dims = len(img.shape)
-        if img_dims < 3:
-            plt.imshow(img, cmap='hot')
+        #plt.title(i+1)
+        plt.title(titles[i])
+        if (cmap == None):
+            img_dims = len(img.shape)
+            if img_dims < 3:
+                plt.imshow(img, cmap='hot')
+            else:
+                plt.imshow(img)
         else:
-            plt.imshow(img)
-        #plt.title(titles[i])
+            plt.imshow(img, cmap=cmap)
     plt.show()
+
+    if (figname != None):
+        fig.savefig(figname)
 
 
 # Function that takes an image,
